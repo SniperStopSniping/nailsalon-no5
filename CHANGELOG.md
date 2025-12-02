@@ -1,3 +1,10 @@
+# 1.0.0 (2025-12-02)
+
+
+### Features
+
+* refresh booking flows and shared components ([25459d7](https://github.com/SniperStopSniping/nailsalon-no5/commit/25459d7dd515bf5b878943d8a4078a78f00e0d96))
+
 ## [1.7.6](https://github.com/ixartz/SaaS-Boilerplate/compare/v1.7.5...v1.7.6) (2025-05-01)
 
 
