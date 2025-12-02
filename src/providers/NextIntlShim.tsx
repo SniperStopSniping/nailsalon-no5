@@ -5,19 +5,25 @@ import type { ReactNode } from 'react';
 import type { Translator } from './translationShim';
 import { createTranslator } from './translationShim';
 
-type I18nProviderProps = {
+type ProviderProps = {
   children: ReactNode;
   locale?: string;
   messages?: Record<string, unknown>;
 };
 
-export function I18nProvider({ children }: I18nProviderProps) {
-  return <>{children}</>;
-}
-
 export function useTranslations(namespace?: string): Translator {
   return createTranslator(namespace);
 }
 
-export default I18nProvider;
+export function useLocale() {
+  return 'en';
+}
+
+export function useMessages() {
+  return {};
+}
+
+export function NextIntlClientProvider({ children }: ProviderProps) {
+  return <>{children}</>;
+}
 
