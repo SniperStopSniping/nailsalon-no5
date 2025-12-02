@@ -1,14 +1,8 @@
 "use client";
 
 import { useParams, useRouter, usePathname } from "next/navigation";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef } from "react";
 import { useTranslations } from "next-intl";
-import { PageLayout } from "@/components/PageLayout";
-import { MainCard } from "@/components/MainCard";
-import { PrimaryButton } from "@/components/PrimaryButton";
-import { SecondaryButton } from "@/components/SecondaryButton";
-import { FormInput } from "@/components/FormInput";
-import { SummaryRow } from "@/components/SummaryRow";
 
 type SectionId =
   | "beauty-profile"
@@ -56,6 +50,7 @@ export default function ProfilePage() {
   // Invite state
   const [friendPhone, setFriendPhone] = useState("");
   const [inviteSent, setInviteSent] = useState(false);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
   const isSendingRef = useRef(false);
 
   // Profile image state
@@ -156,6 +151,13 @@ export default function ProfilePage() {
     
     // Update state
     setFriendPhone(digits);
+    
+    // Maintain focus
+    requestAnimationFrame(() => {
+      if (phoneInputRef.current && document.activeElement !== phoneInputRef.current) {
+        phoneInputRef.current.focus();
+      }
+    });
     
     // Auto-send when 10 digits entered
     if (digits.length === 10 && !inviteSent && !isSendingRef.current) {
@@ -352,16 +354,15 @@ export default function ProfilePage() {
     children: React.ReactNode;
   }) => {
     const isOpen = openSections.has(id);
-    const isAppointments = id === "appointments";
 
     return (
-      <MainCard animateGoldBar={isAppointments && isOpen}>
+      <div className="rounded-xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)] overflow-hidden">
         <button
           type="button"
           onClick={() => toggleSection(id)}
-          className="w-full flex items-center justify-between text-left"
+          className="w-full flex items-center justify-between px-4 py-3.5 text-left h-12"
         >
-          <h3 className="text-base font-semibold text-neutral-900">{title}</h3>
+          <h3 className="text-sm font-semibold text-neutral-900">{title}</h3>
           <svg
             width="16"
             height="16"
@@ -381,14 +382,14 @@ export default function ProfilePage() {
             />
           </svg>
         </button>
-        {isOpen && <div className="pt-4">{children}</div>}
-      </MainCard>
+        {isOpen && <div className="px-4 pb-4">{children}</div>}
+      </div>
     );
   };
 
   return (
-    <PageLayout>
-      <div className="flex flex-col gap-4">
+    <div className="min-h-screen bg-[#f6ebdd] flex justify-center py-4">
+      <div className="mx-auto max-w-[430px] w-full px-4 flex flex-col gap-2.5">
         {/* Top bar with back button */}
         <div className="pt-2 relative flex items-center">
           <button
@@ -416,12 +417,12 @@ export default function ProfilePage() {
 
         {/* Title */}
         <div className="text-center">
-          <h1 className="text-3xl font-semibold text-[#7b4ea3]">My Profile</h1>
-          <p className="text-base font-bold text-neutral-700 mt-1">Hi there, {userName}! 👋</p>
+          <h1 className="text-2xl font-bold text-neutral-900">My Profile</h1>
+          <p className="text-sm text-neutral-600 mt-1">Hello {userName}</p>
         </div>
 
         {/* Profile Header Card (not collapsible) */}
-        <MainCard>
+        <div className="rounded-xl bg-white shadow-[0_1px_3px_rgba(0,0,0,0.08)] p-4">
           <div className="flex items-center gap-4">
             {/* Avatar */}
             <div className="relative">
@@ -446,7 +447,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={handleProfileImageClick}
-                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#f4b864] flex items-center justify-center text-sm font-bold text-neutral-900 shadow-sm hover:bg-[#f4b864]/90 transition-colors"
+                className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-[#f4b864] flex items-center justify-center text-xs font-bold text-neutral-900 shadow-sm hover:bg-[#f4b864]/90 transition-colors"
               >
                 +
               </button>
@@ -455,19 +456,19 @@ export default function ProfilePage() {
             {/* Name and Phone */}
             <div className="flex-1 text-center">
               {isEditMode ? (
-                <FormInput
+                <input
                   type="text"
                   value={editedName}
                   onChange={(e) => setEditedName(e.target.value)}
-                  className="!w-full !text-2xl !font-semibold !text-center !rounded-lg !bg-[#fff7ec] !px-3 !py-1.5 !ring-2 !ring-[#f4b864]"
+                  className="w-full text-base font-semibold text-neutral-900 text-center rounded-lg bg-[#fff7ec] px-3 py-1.5 outline-none ring-2 ring-[#f4b864]"
                   autoFocus
                 />
               ) : (
-                <div className="text-2xl font-semibold text-neutral-900 -translate-x-1">
+                <div className="text-base font-semibold text-neutral-900">
                   {userName}
                 </div>
               )}
-              <div className="text-lg text-neutral-600 mt-0.5 -translate-x-1">
+              <div className="text-sm text-neutral-600 mt-0.5">
                 +1 (555) 123-4567
               </div>
             </div>
@@ -479,16 +480,16 @@ export default function ProfilePage() {
                 onClick={handleEditProfile}
                 className="text-sm text-neutral-500 hover:text-neutral-700 transition-colors"
               >
-                Edit
+                {t("edit")}
               </button>
             )}
           </div>
-        </MainCard>
+        </div>
 
         {/* Profile image upload status */}
         {profileUploadStatus && (
           <p
-            className={`text-sm text-center ${
+            className={`text-xs text-center ${
               profileUploadStatus.success
                 ? "text-green-600"
                 : "text-red-600"
@@ -501,74 +502,72 @@ export default function ProfilePage() {
         {/* Save/Cancel buttons - shown when in edit mode */}
         {isEditMode && (
           <div className="flex gap-3">
-            <SecondaryButton
+            <button
+              type="button"
               onClick={handleCancelEdit}
-              size="sm"
+              className="flex-1 rounded-full bg-white border-2 border-neutral-200 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 active:scale-[0.98] transition-all duration-150"
             >
-              Cancel
-            </SecondaryButton>
-            <PrimaryButton
+              {t("cancel")}
+            </button>
+            <button
+              type="button"
               onClick={handleSaveName}
               disabled={!editedName.trim()}
-              size="sm"
+              className="flex-1 rounded-full bg-[#f4b864] py-2.5 text-sm font-semibold text-neutral-900 hover:bg-[#f4b864]/90 active:scale-[0.98] transition-all duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Save
-            </PrimaryButton>
+              {t("save")}
+            </button>
           </div>
         )}
 
         {/* My Appointments Section */}
-        <CollapsibleSection id="appointments" title="My Appointments">
+        <CollapsibleSection id="appointments" title={t("my_appointments")}>
           <div className="space-y-3 pt-2">
             <h4 className="text-sm font-semibold text-neutral-900">
-              Next Appointment
+              {t("next_appointment")}
             </h4>
             <div className="rounded-xl bg-[#fff7ec] p-3 space-y-2">
               <div className="text-sm font-semibold text-neutral-900">
                 BIAB Refill
               </div>
-              <div className="text-sm text-neutral-600">Tech: Tiffany</div>
-              <div className="text-sm text-neutral-600">Dec 18 · 2:00 PM</div>
+              <div className="text-xs text-neutral-600">{t("tech")}: Tiffany</div>
+              <div className="text-xs text-neutral-600">Dec 18 · 2:00 PM</div>
               <div className="border-t border-neutral-200/50 pt-2 mt-2 space-y-1">
-                <SummaryRow label="Price" value="$65" />
-                <SummaryRow
-                  label="Reward Applied"
-                  value={<span className="text-green-600">-$5</span>}
-                />
-                <div className="flex justify-between items-center pt-2 border-t border-neutral-100">
-                  <span className="text-[18px] font-bold text-neutral-900">
-                    Total
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-neutral-600">{t("price")}</span>
+                  <span className="font-semibold text-neutral-900">$65</span>
+                </div>
+                <div className="flex justify-between items-center text-xs">
+                  <span className="text-neutral-600">{t("reward_applied")}</span>
+                  <span className="text-green-600 font-semibold">-$5</span>
+                </div>
+                <div className="flex justify-between items-center pt-1 border-t border-neutral-200/50">
+                  <span className="text-sm font-semibold text-neutral-900">
+                    {t("total")}
                   </span>
-                  <span className="text-[18px] font-bold text-neutral-900">$60</span>
+                  <span className="text-sm font-bold text-neutral-900">$60</span>
                 </div>
               </div>
             </div>
-            <PrimaryButton
-              onClick={() => {
-                // Pass appointment data - using biab-medium as default for "BIAB Refill"
-                // In a real app, this would come from the actual appointment data
-                const appointmentDate = "2024-12-18"; // Dec 18 - this should come from actual appointment
-                const appointmentTime = "14:00"; // 2:00 PM
-                router.push(
-                  `/${locale}/change-appointment?serviceIds=biab-medium&techId=tiffany&date=${appointmentDate}&time=${appointmentTime}`
-                );
-              }}
-              size="sm"
+            <button
+              type="button"
+              onClick={() => router.push(`/${locale}/change-appointment`)}
+              className="w-full rounded-full bg-[#f4b864] py-2.5 text-sm font-semibold text-neutral-900 hover:bg-[#f4b864]/90 active:scale-[0.98] transition-all duration-150"
             >
-              View / Change Appointment
-            </PrimaryButton>
+              {t("view_change_appointment")}
+            </button>
             <button
               type="button"
               onClick={() => router.push(`/${locale}/appointments/history`)}
               className="w-full text-sm text-[#7b4ea3] font-medium hover:text-[#7b4ea3]/80 transition-colors"
             >
-              View Appointment History
+              {t("view_appointment_history")}
             </button>
           </div>
         </CollapsibleSection>
 
         {/* My Nail Gallery Section */}
-        <CollapsibleSection id="gallery" title="My Nail Gallery">
+        <CollapsibleSection id="gallery" title={t("my_nail_gallery")}>
           <div className="pt-2">
             <div className="grid grid-cols-3 gap-2">
               {[
@@ -605,19 +604,19 @@ export default function ProfilePage() {
               onClick={() => router.push(`/${locale}/gallery`)}
               className="mt-3 text-sm text-[#7b4ea3] font-medium hover:text-[#7b4ea3]/80 transition-colors"
             >
-              View All Photos
+              {t("view_all_photos")}
             </button>
           </div>
         </CollapsibleSection>
 
         {/* Rewards Section */}
-        <CollapsibleSection id="rewards" title="Rewards">
+        <CollapsibleSection id="rewards" title={t("rewards")}>
           <div className="space-y-4 pt-1">
             <div className="text-sm text-neutral-900">
               You have <span className="font-semibold">240 points</span>
             </div>
             <div className="space-y-2">
-              <div className="flex justify-between text-sm text-neutral-600">
+              <div className="flex justify-between text-xs text-neutral-600">
                 <span>60 points until FREE BIAB Fill</span>
               </div>
               <div className="h-1.5 bg-neutral-200 rounded-full overflow-hidden">
@@ -628,67 +627,70 @@ export default function ProfilePage() {
               </div>
             </div>
             <div className="flex gap-2 pt-1">
-              <PrimaryButton
+              <button
+                type="button"
                 onClick={() => router.push(`/${locale}/rewards`)}
-                size="sm"
-                fullWidth={false}
+                className="flex-1 rounded-full bg-[#f4b864] py-2 text-sm font-semibold text-neutral-900 hover:bg-[#f4b864]/90 active:scale-[0.98] transition-all duration-150"
               >
-                View Rewards
-              </PrimaryButton>
+                {t("view_rewards")}
+              </button>
               <button
                 type="button"
                 onClick={() => console.log("TODO: Rewards info")}
                 className="text-sm text-[#7b4ea3] font-medium hover:text-[#7b4ea3]/80 transition-colors"
               >
-                Learn More
+                How rewards work
               </button>
             </div>
           </div>
         </CollapsibleSection>
 
         {/* Invite & Earn Section */}
-        <CollapsibleSection id="invite" title="Invite & Earn">
+        <CollapsibleSection id="invite" title={t("invite_earn")}>
           <div className="space-y-3 pt-2">
             <p className="text-sm text-neutral-700">
               Invite friends and earn a free manicure.
             </p>
             <div className="space-y-2">
               <label className="text-sm font-medium text-neutral-900">
-                Friend's Phone Number
+                {t("friends_phone_number")}
               </label>
               <div className="flex items-center gap-2">
-                <div className="flex items-center rounded-full bg-neutral-100 px-2.5 py-1.5 text-sm text-neutral-600">
+                <div className="flex items-center rounded-full bg-neutral-100 px-2.5 py-1.5 text-xs text-neutral-600">
                   <span className="mr-1">+1</span>
                 </div>
                 <input
+                  ref={phoneInputRef}
                   type="tel"
                   inputMode="numeric"
                   pattern="[0-9]*"
                   value={friendPhone}
                   onChange={handlePhoneChange}
                   placeholder="Phone number"
-                  className="flex-1 min-w-0 rounded-full bg-neutral-100 px-3 py-2 text-base text-neutral-800 placeholder:text-neutral-400 outline-none"
+                  className="flex-1 rounded-full bg-neutral-100 px-3 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 outline-none"
                   autoComplete="off"
+                  key="friend-phone-input"
                 />
               </div>
               {inviteSent && (
-                <p className="text-sm text-center text-green-600 mt-1">
-                  Invite Sent
+                <p className="text-xs text-center text-green-600 mt-1">
+                  {t("invite_sent")}
                 </p>
               )}
             </div>
-            <PrimaryButton
+            <button
+              type="button"
               onClick={() => router.push(`/${locale}/invite`)}
-              size="sm"
+              className="w-full rounded-full bg-[#f4b864] py-3 text-sm font-semibold text-neutral-900 hover:bg-[#f4b864]/90 active:scale-[0.98] transition-all duration-150 shadow-sm"
             >
-              Share Referral Link
-            </PrimaryButton>
+              {t("share_referral_link")}
+            </button>
             <button
               type="button"
               onClick={() => router.push(`/${locale}/my-referrals`)}
               className="text-sm text-[#7b4ea3] font-medium hover:text-[#7b4ea3]/80 transition-colors"
             >
-              My Referrals
+              View my referrals
             </button>
           </div>
         </CollapsibleSection>
@@ -718,38 +720,40 @@ export default function ProfilePage() {
               onClick={() => console.log("TODO: Membership details")}
               className="text-sm text-[#7b4ea3] font-medium hover:text-[#7b4ea3]/80 transition-colors"
             >
-              Membership Details
+              View membership details
             </button>
           </div>
         </CollapsibleSection>
 
         {/* Rate Us on Google Section */}
-        <CollapsibleSection id="rate-us" title="Rate Us on Google">
+        <CollapsibleSection id="rate-us" title={t("rate_us_google")}>
           <div className="space-y-3 pt-2">
             <p className="text-sm text-neutral-700">
               Love your nails? Help us grow.
             </p>
-            <PrimaryButton
+            <button
+              type="button"
               onClick={() => {
                 console.log("TODO: Open Google review link");
+                // TODO: Replace with actual Google review URL
               }}
-              size="sm"
+              className="w-full rounded-full bg-[#f4b864] py-2.5 text-sm font-semibold text-neutral-900 hover:bg-[#f4b864]/90 active:scale-[0.98] transition-all duration-150"
             >
-              Rate Us on Google
-            </PrimaryButton>
+              ⭐ Rate Us on Google
+            </button>
           </div>
         </CollapsibleSection>
 
         {/* Beauty Profile Section */}
-        <CollapsibleSection id="beauty-profile" title="Beauty Preferences">
+        <CollapsibleSection id="beauty-profile" title={t("beauty_profile")}>
           <div className="space-y-2.5 pt-2">
             {/* Card 1 - Contact & Basics */}
             <div className="rounded-xl bg-[#fff7ec] shadow-sm p-4 space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-neutral-900">
-                  Email (Optional)
+                  {t("email_optional")}
                 </label>
-                <FormInput
+                <input
                   type="email"
                   value={
                     isEditingBeautyProfile
@@ -764,13 +768,13 @@ export default function ProfilePage() {
                   }
                   disabled={!isEditingBeautyProfile}
                   placeholder="your@email.com"
-                  className="!w-full !px-4 !py-2 !text-sm"
+                  className="w-full rounded-full bg-neutral-100 px-4 py-2 text-sm text-neutral-800 placeholder:text-neutral-400 outline-none disabled:opacity-60"
                 />
               </div>
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-neutral-900">
-                  Favorite Technician
+                  {t("favourite_tech")}
                 </label>
                 <div className="flex flex-wrap gap-3">
                   {["Daniela", "Tiffany", "Jenny"].map((tech) => {
@@ -789,7 +793,7 @@ export default function ProfilePage() {
                           })
                         }
                         disabled={!isEditingBeautyProfile}
-                        className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-150 ${
+                        className={`px-5 py-2.5 rounded-full text-xs font-medium transition-all duration-150 ${
                           isSelected
                             ? "bg-[#e9d5f5] ring-2 ring-[#7b4ea3] ring-offset-1 ring-offset-[#fff7ec] text-neutral-900"
                             : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-[#7b4ea3]"
@@ -807,7 +811,7 @@ export default function ProfilePage() {
             <div className="rounded-xl bg-[#fff7ec] shadow-sm p-4 space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-neutral-900">
-                  Nail Length
+                  {t("nail_length")}
                 </label>
                 <div className="flex flex-wrap gap-3">
                   {["Short", "Medium", "Long"].map((length) => {
@@ -826,7 +830,7 @@ export default function ProfilePage() {
                           })
                         }
                         disabled={!isEditingBeautyProfile}
-                        className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-150 ${
+                        className={`px-5 py-2.5 rounded-full text-xs font-medium transition-all duration-150 ${
                           isSelected
                             ? "bg-[#e9d5f5] ring-2 ring-[#7b4ea3] ring-offset-1 ring-offset-[#fff7ec] text-neutral-900"
                             : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-[#7b4ea3]"
@@ -841,7 +845,7 @@ export default function ProfilePage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-neutral-900">
-                  Nail Shape
+                  {t("nail_shape")}
                 </label>
                 <div className="flex flex-wrap gap-3">
                   {["Square", "Squoval", "Almond", "Coffin", "Stiletto"].map(
@@ -861,7 +865,7 @@ export default function ProfilePage() {
                             })
                           }
                           disabled={!isEditingBeautyProfile}
-                          className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-150 ${
+                          className={`px-5 py-2.5 rounded-full text-xs font-medium transition-all duration-150 ${
                             isSelected
                               ? "bg-[#e9d5f5] ring-2 ring-[#7b4ea3] ring-offset-1 ring-offset-[#fff7ec] text-neutral-900"
                               : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-[#7b4ea3]"
@@ -877,7 +881,7 @@ export default function ProfilePage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-neutral-900">
-                  Finish
+                  {t("finish")}
                 </label>
                 <div className="flex flex-wrap gap-3">
                   {["Glossy", "Matte", "Chrome", "Cat-eye"].map((finish) => {
@@ -896,7 +900,7 @@ export default function ProfilePage() {
                           })
                         }
                         disabled={!isEditingBeautyProfile}
-                        className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-150 ${
+                        className={`px-5 py-2.5 rounded-full text-xs font-medium transition-all duration-150 ${
                           isSelected
                             ? "bg-[#e9d5f5] ring-2 ring-[#7b4ea3] ring-offset-1 ring-offset-[#fff7ec] text-neutral-900"
                             : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-[#7b4ea3]"
@@ -911,7 +915,7 @@ export default function ProfilePage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-neutral-900">
-                  Favorite Colors
+                  {t("favourite_colours")}
                 </label>
                 <div className="flex flex-wrap gap-3">
                   {[
@@ -941,7 +945,7 @@ export default function ProfilePage() {
                           })
                         }
                         disabled={!isEditingBeautyProfile}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 ${
+                        className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-150 ${
                           isSelected
                             ? "bg-[#e9d5f5] ring-2 ring-[#7b4ea3] ring-offset-1 ring-offset-[#fff7ec] text-neutral-900"
                             : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-[#7b4ea3]"
@@ -958,7 +962,7 @@ export default function ProfilePage() {
             {/* Card 3 - Favourite Gel Brands */}
             <div className="rounded-xl bg-[#fff7ec] shadow-sm p-4 space-y-3">
               <label className="text-sm font-medium text-neutral-900">
-                Favorite Brands
+                {t("favourite_brands")}
               </label>
               <div className="flex flex-wrap gap-3">
                 {[
@@ -993,7 +997,7 @@ export default function ProfilePage() {
                         })
                       }
                       disabled={!isEditingBeautyProfile}
-                      className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 ${
+                      className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-150 ${
                         isSelected
                           ? "bg-[#e9d5f5] ring-2 ring-[#7b4ea3] ring-offset-1 ring-offset-[#fff7ec] text-neutral-900"
                           : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-[#7b4ea3]"
@@ -1010,7 +1014,7 @@ export default function ProfilePage() {
             <div className="rounded-xl bg-[#fff7ec] shadow-sm p-4 space-y-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium text-neutral-900">
-                  Favorite Service
+                  {t("favourite_service")}
                 </label>
                 <div className="flex flex-wrap gap-3">
                   {[
@@ -1035,7 +1039,7 @@ export default function ProfilePage() {
                           })
                         }
                         disabled={!isEditingBeautyProfile}
-                        className={`px-5 py-2.5 rounded-full text-sm font-medium transition-all duration-150 ${
+                        className={`px-5 py-2.5 rounded-full text-xs font-medium transition-all duration-150 ${
                           isSelected
                             ? "bg-[#e9d5f5] ring-2 ring-[#7b4ea3] ring-offset-1 ring-offset-[#fff7ec] text-neutral-900"
                             : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-[#7b4ea3]"
@@ -1050,7 +1054,7 @@ export default function ProfilePage() {
 
               <div className="space-y-2">
                 <label className="text-sm font-medium text-neutral-900">
-                  Design Styles
+                  {t("what_designs")}
                 </label>
                 <div className="flex flex-wrap gap-3">
                   {[
@@ -1080,7 +1084,7 @@ export default function ProfilePage() {
                           })
                         }
                         disabled={!isEditingBeautyProfile}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all duration-150 ${
+                        className={`px-4 py-2 rounded-full text-xs font-medium transition-all duration-150 ${
                           isSelected
                             ? "bg-[#e9d5f5] ring-2 ring-[#7b4ea3] ring-offset-1 ring-offset-[#fff7ec] text-neutral-900"
                             : "bg-neutral-50 text-neutral-700 hover:bg-neutral-100 border border-[#7b4ea3]"
@@ -1097,7 +1101,7 @@ export default function ProfilePage() {
             {/* Card 5 - Notes for Your Tech */}
             <div className="rounded-xl bg-[#fff7ec] shadow-sm p-4 space-y-3">
               <label className="text-sm font-medium text-neutral-900">
-                Notes for Your Technician
+                {t("notes_placeholder")}
               </label>
               <textarea
                 value={
@@ -1125,29 +1129,31 @@ export default function ProfilePage() {
                 onClick={handleEditBeautyProfile}
                 className="text-sm text-[#7b4ea3] font-medium hover:text-[#7b4ea3]/80 transition-colors px-1"
               >
-                Edit Preferences
+                {t("edit_beauty_profile")}
               </button>
             ) : (
               <div className="flex gap-3">
-                <SecondaryButton
+                <button
+                  type="button"
                   onClick={handleCancelBeautyProfile}
-                  size="sm"
+                  className="flex-1 rounded-full bg-white border-2 border-neutral-200 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 active:scale-[0.98] transition-all duration-150"
                 >
-                  Cancel
-                </SecondaryButton>
-                <PrimaryButton
+                  {t("cancel")}
+                </button>
+                <button
+                  type="button"
                   onClick={handleSaveBeautyProfile}
-                  size="sm"
+                  className="flex-1 rounded-full bg-[#f4b864] py-2.5 text-sm font-semibold text-neutral-900 hover:bg-[#f4b864]/90 active:scale-[0.98] transition-all duration-150"
                 >
-                  Save
-                </PrimaryButton>
+                  {t("save")}
+                </button>
               </div>
             )}
           </div>
         </CollapsibleSection>
 
         {/* Payment Methods Section */}
-        <CollapsibleSection id="payment" title="Payment Methods">
+        <CollapsibleSection id="payment" title={t("payment_methods")}>
           <div className="space-y-3 pt-2">
             {/* Cards List */}
             {!showAddCard && !showManageCards && (
@@ -1162,8 +1168,8 @@ export default function ProfilePage() {
                         {card.type} •••• {card.last4}
                       </span>
                       {card.isDefault && (
-                        <span className="text-sm px-2 py-0.5 rounded-full bg-[#f4b864]/20 text-neutral-700 font-medium">
-                          Default
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-[#f4b864]/20 text-neutral-700 font-medium">
+                          {t("default")}
                         </span>
                       )}
                     </div>
@@ -1176,14 +1182,14 @@ export default function ProfilePage() {
                     onClick={handleAddCard}
                     className="text-sm text-[#7b4ea3] font-medium hover:text-[#7b4ea3]/80 transition-colors text-left"
                   >
-                Add New Card
+                {t("add_new_card")}
               </button>
               <button
                 type="button"
                 onClick={handleManageCards}
                 className="text-sm text-[#7b4ea3] font-medium hover:text-[#7b4ea3]/80 transition-colors text-left"
               >
-                Manage Payment Methods
+                {t("manage_payment_methods")}
                   </button>
                 </div>
               </>
@@ -1193,12 +1199,12 @@ export default function ProfilePage() {
             {showAddCard && (
               <div className="space-y-3 rounded-xl bg-[#fff7ec] p-4">
                 <h3 className="text-sm font-semibold text-neutral-900">
-                  Add New Card
+                  {t("add_new_card_title")}
                 </h3>
                 <div className="space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-neutral-700 mb-1.5 block">
-                      Card Number
+                    <label className="text-xs font-medium text-neutral-700 mb-1.5 block">
+                      {t("card_number")}
                     </label>
                     <input
                       type="text"
@@ -1218,8 +1224,8 @@ export default function ProfilePage() {
                     />
                   </div>
                   <div>
-                    <label className="text-sm font-medium text-neutral-700 mb-1.5 block">
-                      Cardholder Name
+                    <label className="text-xs font-medium text-neutral-700 mb-1.5 block">
+                      {t("cardholder_name")}
                     </label>
                     <input
                       type="text"
@@ -1236,8 +1242,8 @@ export default function ProfilePage() {
                   </div>
                   <div className="grid grid-cols-3 gap-2">
                     <div className="col-span-2">
-                      <label className="text-sm font-medium text-neutral-700 mb-1.5 block">
-                        Expiry Date
+                      <label className="text-xs font-medium text-neutral-700 mb-1.5 block">
+                        {t("expiry_date")}
                       </label>
                       <div className="flex gap-2">
                         <input
@@ -1269,8 +1275,8 @@ export default function ProfilePage() {
                       </div>
                     </div>
                     <div>
-                      <label className="text-sm font-medium text-neutral-700 mb-1.5 block">
-                        CVV
+                      <label className="text-xs font-medium text-neutral-700 mb-1.5 block">
+                        {t("cvv")}
                       </label>
                       <input
                         type="text"
@@ -1289,18 +1295,20 @@ export default function ProfilePage() {
                   </div>
                 </div>
                 <div className="flex gap-2 pt-2">
-                  <SecondaryButton
+                  <button
+                    type="button"
                     onClick={handleCancelAddCard}
-                    size="sm"
+                    className="flex-1 rounded-full bg-white border-2 border-neutral-200 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 active:scale-[0.98] transition-all duration-150"
                   >
-                    Cancel
-                  </SecondaryButton>
-                  <PrimaryButton
+                    {t("cancel")}
+                  </button>
+                  <button
+                    type="button"
                     onClick={handleSaveCard}
-                    size="sm"
+                    className="flex-1 rounded-full bg-[#f4b864] py-2.5 text-sm font-semibold text-neutral-900 hover:bg-[#f4b864]/90 active:scale-[0.98] transition-all duration-150"
                   >
-                    Save Card
-                  </PrimaryButton>
+                    {t("save")} Card
+                  </button>
                 </div>
               </div>
             )}
@@ -1309,7 +1317,7 @@ export default function ProfilePage() {
             {showManageCards && (
               <div className="space-y-3">
                 <h3 className="text-sm font-semibold text-neutral-900">
-                  Manage Payment Methods
+                  {t("manage_payment_methods_title")}
                 </h3>
                 {paymentCards.map((card) => (
                   <div
@@ -1322,47 +1330,48 @@ export default function ProfilePage() {
                           {card.type} •••• {card.last4}
                         </span>
                         {card.isDefault && (
-                          <span className="text-sm px-2 py-0.5 rounded-full bg-[#f4b864]/20 text-neutral-700 font-medium">
-                            Default
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-[#f4b864]/20 text-neutral-700 font-medium">
+                            {t("default")}
                           </span>
                         )}
                       </div>
                     </div>
-                    <div className="text-sm text-neutral-600">
-                      Expires {card.expiryMonth}/{card.expiryYear}
+                    <div className="text-xs text-neutral-600">
+                      {t("expires")} {card.expiryMonth}/{card.expiryYear}
                     </div>
                     <div className="flex gap-2 pt-2">
                       {!card.isDefault && (
                         <button
                           type="button"
                           onClick={() => handleSetDefault(card.id)}
-                          className="flex-1 rounded-full bg-white border-2 border-neutral-200 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 active:scale-[0.98] transition-all duration-150"
+                          className="flex-1 rounded-full bg-white border-2 border-neutral-200 py-2 text-xs font-semibold text-neutral-900 hover:bg-neutral-50 active:scale-[0.98] transition-all duration-150"
                         >
-                          Set as Default
+                          {t("set_as_default")}
                         </button>
                       )}
                       <button
                         type="button"
                         onClick={() => handleDeleteCard(card.id)}
-                        className="flex-1 rounded-full bg-red-50 border-2 border-red-200 py-2 text-sm font-semibold text-red-600 hover:bg-red-100 active:scale-[0.98] transition-all duration-150"
+                        className="flex-1 rounded-full bg-red-50 border-2 border-red-200 py-2 text-xs font-semibold text-red-600 hover:bg-red-100 active:scale-[0.98] transition-all duration-150"
                       >
-                        Delete
+                        {t("delete")}
                       </button>
                     </div>
                   </div>
                 ))}
-                <SecondaryButton
+                <button
+                  type="button"
                   onClick={() => setShowManageCards(false)}
-                  size="sm"
+                  className="w-full rounded-full bg-white border-2 border-neutral-200 py-2.5 text-sm font-semibold text-neutral-900 hover:bg-neutral-50 active:scale-[0.98] transition-all duration-150"
                 >
-                  Close
-                </SecondaryButton>
+                  Done
+                </button>
               </div>
             )}
           </div>
         </CollapsibleSection>
       </div>
-    </PageLayout>
+    </div>
   );
 }
 
