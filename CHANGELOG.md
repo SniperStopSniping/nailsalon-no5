@@ -1,3 +1,10 @@
+## [1.0.1](https://github.com/SniperStopSniping/nailsalon-no5/compare/v1.0.0...v1.0.1) (2025-12-02)
+
+
+### Reverts
+
+* Revert "feat: refresh booking flows and shared components" ([054b0b9](https://github.com/SniperStopSniping/nailsalon-no5/commit/054b0b901fd4a56820536f63d0fb347587dbd101))
+
 # 1.0.0 (2025-12-02)
 
 
