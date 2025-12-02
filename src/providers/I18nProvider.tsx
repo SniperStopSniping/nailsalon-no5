@@ -14,24 +14,48 @@ type Translator = ((key: string) => string) & {
   rich: (key: string, values?: Record<string, RichRenderer>) => ReactNode;
 };
 
-// Lightweight provider placeholder: no side-effects, just renders children.
+// 🔹 Hard-coded strings for now so your UI looks good again
+const STRINGS: Record<string, string> = {
+  'Profile.edit': 'Edit profile',
+  'Profile.my_appointments': 'My appointments',
+  'Profile.next_appointment': 'Next appointment',
+  'Profile.tech': 'Tech',
+  'Profile.price': 'Price',
+  'Profile.reward_applied': 'Reward applied',
+  'Profile.total': 'Total',
+  'Profile.view_change_appointment': 'Change appointment',
+  'Profile.view_appointment_history': 'View appointment history',
+  'Profile.my_nail_gallery': 'My nail gallery',
+  'Profile.rewards': 'Rewards',
+  'Profile.invite_earn': 'Invite friends and earn a free manicure',
+  'Profile.friends_phone_number': "Friend's phone number",
+  'Profile.share_referral_link': 'Share referral link',
+  'Profile.rate_us_google': 'Rate us on Google',
+  'Profile.beauty_profile': 'Beauty profile',
+  'Profile.payment_methods': 'Payment methods',
+};
+
 export function I18nProvider({ children }: I18nProviderProps) {
   return <>{children}</>;
 }
 
-export function useTranslations(_namespace?: string): Translator {
-  const translator = ((key: string) => key) as Translator;
+export function useTranslations(namespace?: string): Translator {
+  const translator = ((key: string) => {
+    const fullKey = namespace ? `${namespace}.${key}` : key;
 
-  translator.rich = (_key: string, values?: Record<string, RichRenderer>) => {
-    if (!values || Object.keys(values).length === 0) {
-      return _key;
+    if (STRINGS[fullKey]) {
+      return STRINGS[fullKey];
     }
 
-    // When rich formatters are provided, just call the first formatter with the key.
-    const [firstKey] = Object.keys(values);
-    const formatter = firstKey ? values[firstKey] : undefined;
+    const last = fullKey.split('.').pop() ?? fullKey;
 
-    return formatter ? formatter(_key) : _key;
+    return last
+      .replace(/_/g, ' ')
+      .replace(/\b\w/g, char => char.toUpperCase());
+  }) as Translator;
+
+  translator.rich = (key: string, _values?: Record<string, RichRenderer>) => {
+    return translator(key);
   };
 
   return translator;
